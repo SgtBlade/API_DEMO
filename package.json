@@ -1,5 +1,8 @@
 {
-  "type": "module",
+  "name": "svs-api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
   "scripts": {
     "start": "nodemon index.js",
     "build": "node ./index.js"
