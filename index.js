@@ -11,7 +11,7 @@ import { registerRoutes } from "./routers/routers.js";
 
 //Create an Express app:
 const app = express();
-const port = 3002;
+const port = process.env.PORT;
 
 //Register middleware:
 registerMiddleware(app);
