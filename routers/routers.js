@@ -3,6 +3,8 @@ import passport from "passport";
 import { ObjectId } from "mongodb";
 import jwt from "jsonwebtoken";
 import { initClient } from "../db/mongo.js";
+import { createUserData, hash } from "../middleware/auth/hash.js";
+
 //Initialize MongoDB client and database:
 const client = await initClient();
 const db = client.db();
@@ -17,12 +19,24 @@ const registerRegularRoutes = (app) => {
           if (!user) {
             return res.status(401).json({ error: "No user found" });
           }
+          if(user) {
+
+              const givenPassword = hash(user, req.body.password)
+              if(givenPassword !== user.password) {
+                return res.status(401).json({ error: "Invalid username or password" });
+              }
+              
+          }
+
           const token = jwt.sign(
             { id: user._id },
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRES_IN_HOURS * 60 * 60 }
           );
-          delete user.passport
+
+          delete user.password
+          delete user.salt
+          delete user.saltParam
           return res.json({ token, ...user });
         })(req, res, next);
       });
@@ -37,7 +51,8 @@ const registerRegularRoutes = (app) => {
           }
 
           // Create a new user
-          const newUser = { username, password };
+          const newUser = createUserData({ username, password })
+
           // Insert the user into the database
           await db.collection("users").insertOne(newUser);
       
@@ -47,7 +62,10 @@ const registerRegularRoutes = (app) => {
           });
       
           delete newUser.password
+          delete newUser.salt
+          delete newUser.saltParam
           res.json({ token, ...newUser });
+          
         } catch (error) {
           console.log(error)
           res.status(500).json({ error: "Internal Server Error" });

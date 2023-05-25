@@ -12,6 +12,7 @@ export default new LocalStrategy(
         if (!user) {
           await db.collection("users").insertOne({ username });
           user = await db.collection("users").findOne({ username });
+          console.log(user)
         }
 
         return done(null, user);
